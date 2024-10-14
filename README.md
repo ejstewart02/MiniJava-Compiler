@@ -5,3 +5,14 @@ A compiler for a small language, submitted in approximately 4 parts
  - Add symbol resolution and type-checking. Create unit tests and include results for cases of expression and invocation errors, duplicate declarations, overload/override errors, and illegal inheritance.
  - Generate and run code for all of the sample programs.
  - (Optional) Use an optimization framework to add an optimization and regenerate and run sample programs.
+
+Possible Features:
+- division
+- **floats**
+- void return type (java style)
+- functional main function
+- for loops
+- type declaration and assign on same line
+- greater than
+- &&
+- Powers
