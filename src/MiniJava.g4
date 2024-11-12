@@ -17,28 +17,28 @@ type               : 'int' '[' ']'
                    | 'float'
                    | identifier ;
 
-statement          : '{' statement* '}'
-                   | 'if' '(' expression ')' statement 'else' statement
-                   | 'while' '(' expression ')' statement
-                   | 'System.out.println' '(' expression ')' ';'
-                   | identifier '=' expression ';'
-                   | identifier '[' expression ']' '=' expression ';' ;
+statement          : '{' statement* '}' #nestedStatement
+                   | 'if' '(' expression ')' statement 'else' statement #ifElseStatement
+                   | 'while' '(' expression ')' statement #whileStatement
+                   | 'System.out.println' '(' expression ')' ';' #printStatement
+                   | identifier '=' expression ';' #varAssignStatement
+                   | identifier '[' expression ']' '=' expression ';' #arrayAssignStatement;
 
-expression         : expression ('&&' | '<' | '+' | '-' | '*') expression
-                   | expression '[' expression ']'
-                   | expression '.' 'length'
-                   | expression '.' identifier '(' (expression (',' expression)*)? ')'
-                   | INTEGER_LITERAL
-                   | FLOAT_LITERAL
-                   | 'true'
-                   | 'false'
-                   | identifier
-                   | 'this'
-                   | 'new' 'int' '[' expression ']'
-                   | 'new' 'float' '[' expression ']'
-                   | 'new' identifier '(' ')'
-                   | '!' expression
-                   | '(' expression ')' ;
+expression         : expression ('&&' | '<' | '+' | '-' | '*') expression #arithExpression //TODO: Check types
+                   | expression '[' expression ']' #arrayAccessExpression //TODO: check that lit is array and i is int
+                   | expression '.' 'length' #arrayLengthExpression //TODO: check that left is array
+                   | expression '.' identifier '(' (expression (',' expression)*)? ')' #methodCallExpression //done
+                   | INTEGER_LITERAL #intLiteralExpression
+                   | FLOAT_LITERAL #floatLiteralExpression
+                   | 'true' #trueLiteralExpression
+                   | 'false' #falseLiteralExpression
+                   | identifier #identifierExpression
+                   | 'this' #thisClassExpression
+                   | 'new' 'int' '[' expression ']' #newIntegerArrayExpression //TODO: check that i is int
+                   | 'new' 'float' '[' expression ']' #newFloatArrayExpression //TODO: check that i is int
+                   | 'new' identifier '(' ')' #newClassExpression //done
+                   | '!' expression #notExpression //TODO: make sure ex is bool
+                   | '(' expression ')' #lpRpExpression;
 
 identifier         : IDENTIFIER ;
 

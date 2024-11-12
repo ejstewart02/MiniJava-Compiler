@@ -1,0 +1,36 @@
+class Factorial{
+    public static void main(String[] a){
+	    System.out.println(10);
+    }
+}
+
+class A {
+    int z;
+    public int method1A() {
+        int a;
+
+        return a;
+    }
+}
+
+class B extends A {
+    float z; //this should throw error
+    public float method1A() { //this should throw error
+        float a;
+
+        return a;
+    }
+}
+
+class C {
+    public int method1C() {
+        int a;
+
+        B sym;
+        sym = new B();
+
+        a = sym.method1A();
+
+        return a;
+    }
+}

@@ -5,11 +5,13 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -26,8 +28,8 @@ public class Testing {
         loadFiles();
     }
 
-    public void runTests() {
-        try {
+    public void runTests() throws IOException {
+//        try {
             for (String fileName : fileNames) {
                 CharStream charStream = CharStreams.fromFileName(fileLoc + "/" + fileName);
                 MiniJavaLexer mjLexer = new MiniJavaLexer(charStream);
@@ -40,6 +42,18 @@ public class Testing {
 
                 ParseTree tree = miniJavaParser.goal();
 
+                ParseTreeWalker walker = new ParseTreeWalker();
+
+                SymbolDefinitionListener defListener = new SymbolDefinitionListener();
+                walker.walk(defListener, tree);
+
+                InheritanceListener inListener = new InheritanceListener(defListener.globals, defListener.scopes);
+                walker.walk(inListener, tree);
+
+                SymbolResolutionListener resolutionListener = new SymbolResolutionListener(inListener.globals, inListener.scopes);
+                walker.walk(resolutionListener, tree);
+
+
                 System.out.println("Ran a parse on: " + fileName);
 
                 if (displayTrees) {
@@ -49,9 +63,9 @@ public class Testing {
                     visualTrees.add(viewer);
                 }
             }
-        } catch (Exception e) {
-            System.out.println("Error loading test program from file system!");
-        }
+//        } catch (Exception e) {
+//            System.out.println("Error loading test program from file system!");
+//        }
 
         if(displayTrees)
             displayTrees();
