@@ -1,3 +1,4 @@
+import antlr.gen.output.InitializationListener;
 import antlr.gen.output.MiniJavaLexer;
 import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.gui.TreeViewer;
@@ -50,7 +51,10 @@ public class Testing {
                 InheritanceListener inListener = new InheritanceListener(defListener.globals, defListener.scopes);
                 walker.walk(inListener, tree);
 
-                SymbolResolutionListener resolutionListener = new SymbolResolutionListener(inListener.globals, inListener.scopes);
+                InitializationListener initListener = new InitializationListener(inListener.globals, inListener.scopes);
+                walker.walk(initListener, tree);
+
+                SymbolResolutionListener resolutionListener = new SymbolResolutionListener(initListener.globals, initListener.scopes);
                 walker.walk(resolutionListener, tree);
 
 

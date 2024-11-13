@@ -103,6 +103,8 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
     public void exitMethodCallExpression(MiniJavaParser.MethodCallExpressionContext ctx) {
         String methodName = ctx.identifier().getText();
         String className;
+        int numArgs = ctx.expression().size() - 1;
+
         MiniJavaParser.ExpressionContext classExp = ctx.expression(0);
 
         ClassSymbol classSymbol = null;
@@ -123,13 +125,19 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
                 classSymbol = (ClassSymbol) globals.resolve(classVar.getType());
         }
 
+
+
         // If we couldn't find class anywhere, panic, otherwise, try to find the method call.
         if(classSymbol != null) {
             Symbol methodSymbol = classSymbol.resolve(methodName);
+
             if (methodSymbol == null)
                 System.err.println("Res Error: no such method: " + methodName);
             if (methodSymbol instanceof VariableSymbol || methodSymbol instanceof ClassSymbol)
                 System.err.println("Res Error: " + methodName + " is not a method");
+            if(methodSymbol instanceof MethodSymbol && ((MethodSymbol) methodSymbol).arguments.size() != numArgs) {
+                System.err.println("Res Error: Number of arguments mismatch for: " + methodName);
+            }
         }
     }
 
@@ -145,6 +153,4 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
             System.err.println("Res Error: " + className + " is not a class");
         }
     }
-
-
 }

@@ -21,8 +21,8 @@ statement          : '{' statement* '}' #nestedStatement
                    | 'if' '(' expression ')' statement 'else' statement #ifElseStatement
                    | 'while' '(' expression ')' statement #whileStatement
                    | 'System.out.println' '(' expression ')' ';' #printStatement
-                   | identifier '=' expression ';' #varAssignStatement
-                   | identifier '[' expression ']' '=' expression ';' #arrayAssignStatement;
+                   | identifier '=' expression ';' #varAssignStatement //TODO: Check that exp = id type, set state to initialized
+                   | identifier '[' expression ']' '=' expression ';' #arrayAssignStatement; //TODO: i must be int, id and exp same type
 
 expression         : expression ('&&' | '<' | '+' | '-' | '*') expression #arithExpression //TODO: Check types
                    | expression '[' expression ']' #arrayAccessExpression //TODO: check that lit is array and i is int

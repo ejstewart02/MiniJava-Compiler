@@ -14,9 +14,11 @@ class A {
 }
 
 class B extends A {
-    float z; //this should throw error
-    public float method1A() { //this should throw error
-        float a;
+    int z;
+    public int method1A(int q, int p) {
+        int a;
+
+        a = 1;
 
         return a;
     }
@@ -27,10 +29,10 @@ class C {
         int a;
 
         B sym;
-        sym = new B();
+        sym = new B(); //make sure sym is of type B
 
-        a = sym.method1A();
+        a = sym.method1A(a, a); //DONE need to ensure # of arguments match and that the arguments of right type
 
-        return a;
+        return a; //Need to make sure a is initialized before use
     }
 }

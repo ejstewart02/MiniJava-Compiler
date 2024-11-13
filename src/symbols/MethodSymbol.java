@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MethodSymbol extends Symbol implements Scope {
-    Map<String, Symbol> arguments = new LinkedHashMap<String, Symbol>();
+    public Map<String, Symbol> arguments = new LinkedHashMap<String, Symbol>();
     Scope enclosingScope;
 
     public MethodSymbol(String name, String retType, Scope enclosingScope) {
