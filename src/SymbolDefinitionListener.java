@@ -32,12 +32,12 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
         ClassSymbol classSymbol = new ClassSymbol(className, currentScope, null);
 
         if(currentScope.resolve(className) != null) {
-            System.err.println( "Def Error: Class already declared: " + className);
+            System.err.println( "Def Error at line " + ctx.getStart().getLine() + ": Class already declared: " + className);
         } else {
             currentScope.define(classSymbol);
-            saveScope(ctx, classSymbol);
         }
 
+        saveScope(ctx, classSymbol);
         currentScope = classSymbol;
     }
 
@@ -63,8 +63,13 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
 
         //Check that var is not already defined in scope, otherwise, define it
         Symbol res = currentScope.resolveLocal(ctx.identifier().getText());
+
+        if(currentScope instanceof LocalScope) {
+            res = currentScope.getEnclosingScope().resolve(ctx.identifier().getText());
+        }
+
         if (res != null) {
-            System.err.println( "Def Error: Variable already declared: " + varName);
+            System.err.println( "Def Error at line " + ctx.getStart().getLine() + ": Variable already declared: " + varName);
         } else {
             VariableSymbol var = new VariableSymbol(varName, varType);
             currentScope.define(var);
@@ -80,16 +85,20 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
         MethodSymbol methodSymbol = new MethodSymbol(methodName, returnType, currentScope);
         for (int i = 1; i < ctx.identifier().size(); i++) {
             VariableSymbol var = new VariableSymbol(ctx.identifier(i).getText(), ctx.type(i).getText());
-            methodSymbol.define(var);
+            
+            if(methodSymbol.resolveLocal(ctx.identifier(i).getText()) != null)
+                System.err.println( "Def Error at line " + ctx.getStart().getLine() + ": Method parameter already declared: " + ctx.identifier(i).getText());
+            else
+                methodSymbol.define(var);
         }
 
         if(currentScope.resolve(methodName) != null) {
-            System.err.println( "Def Error: Method already declared: " + methodName);
+            System.err.println( "Def Error at line " + ctx.getStart().getLine() + ": Method already declared: " + methodName);
         } else {
             currentScope.define(methodSymbol);
-            saveScope(ctx, methodSymbol);
         }
 
+        saveScope(ctx, methodSymbol);
         currentScope = methodSymbol;
 
         currentScope = new LocalScope(currentScope);

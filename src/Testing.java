@@ -1,4 +1,3 @@
-import antlr.gen.output.InitializationListener;
 import antlr.gen.output.MiniJavaLexer;
 import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.gui.TreeViewer;
@@ -56,6 +55,9 @@ public class Testing {
 
                 SymbolResolutionListener resolutionListener = new SymbolResolutionListener(initListener.globals, initListener.scopes);
                 walker.walk(resolutionListener, tree);
+
+                StaticTypeCheckingListener typeChecker = new StaticTypeCheckingListener(resolutionListener.scopes, resolutionListener.globals);
+                walker.walk(typeChecker, tree);
 
 
                 System.out.println("Ran a parse on: " + fileName);

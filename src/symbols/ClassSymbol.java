@@ -1,7 +1,9 @@
 package symbols;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ClassSymbol extends Symbol implements Scope {
     Map<String, Symbol> arguments = new LinkedHashMap<>();
@@ -58,14 +60,17 @@ public class ClassSymbol extends Symbol implements Scope {
     }
 
     public boolean hasCyclicInheritance() {
+        Set<ClassSymbol> visitedClasses = new HashSet<>();
         ClassSymbol current = this.superClass;
+
         while (current != null) {
-            // If we encounter the same class in the chain, we have a cycle
-            if (current == this) {
+            if (!visitedClasses.add(current)) {
                 return true;
             }
+
             current = current.superClass;
         }
+
         return false;
     }
 

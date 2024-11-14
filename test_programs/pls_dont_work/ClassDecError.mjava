@@ -1,0 +1,34 @@
+class Factorial{
+    public static void main(String[] a){
+	    System.out.println(10);
+    }
+}
+
+class A {
+    public int c(int p) {
+        int p;
+
+        return p;
+    }
+}
+
+class B {
+    public boolean d() {
+        boolean q;
+
+        return q;
+    }
+}
+
+//class C {
+//    public int method1C() {
+//        int a;
+//
+//        B sym;
+//        sym = new B(); //make sure sym is of type B
+//
+//        a = sym.method1A(a, a); //DONE need to ensure # of arguments match and that the arguments of right type
+//
+//        return a; //Need to make sure a is initialized before use
+//    }
+//}

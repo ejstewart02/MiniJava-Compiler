@@ -3,7 +3,9 @@ import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import symbols.*;
 
+import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.Set;
 
 public class SymbolResolutionListener extends MiniJavaBaseListener {
     ParseTreeProperty<Scope> scopes;
@@ -26,7 +28,7 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
 
         // Check for cyclic inheritance
         if (classSymbol != null && classSymbol.hasCyclicInheritance()) {
-            System.err.println("Inheritance Error: Cyclic inheritance detected in class: " + className);
+            System.err.println("Inheritance Error at line " + ctx.getStart().getLine() + ": Cyclic inheritance detected in class: " + className);
         }
     }
 
@@ -43,12 +45,39 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
         String returnType = ctx.type(0).getText();
 
         ClassSymbol classSymbol = (ClassSymbol) currentScope.getEnclosingScope().getEnclosingScope();
+
         Symbol method = classSymbol.resolveInSuper(methodName);
 
-        if(method != null && !Objects.equals(method.getType(), returnType)) {
-            System.err.println("Override error: Differing return types:" + returnType + ", " + method.getType());
+        if (method != null) {
+            Set<String> superParams = ((MethodSymbol) method).arguments.keySet();
+            LinkedHashMap<String, String> childParams = new LinkedHashMap<>();
+
+            for (int i = 1; i < ctx.identifier().size(); i++) {
+                String paramName = ctx.identifier(i).getText();
+                String paramType = ctx.type(i).getText();
+                childParams.put(paramName, paramType);
+            }
+
+            if (!superParams.equals(childParams.keySet())) {
+                System.err.println("Override error at line " + ctx.getStart().getLine() + ": Differing parameter names!");
+            }
+
+            for (String paramName : superParams) {
+                String superParamType = ((MethodSymbol) method).arguments.get(paramName).getType();
+                String childParamType = childParams.get(paramName);
+
+                if (!superParamType.equals(childParamType)) {
+                    System.err.println("Override error at line " + ctx.getStart().getLine() + ": Parameter type mismatch for " + paramName +
+                            ": expected " + superParamType + ", but got " + childParamType);
+                }
+            }
+
+            if (!Objects.equals(method.getType(), returnType)) {
+                System.err.println("Override error at line " + ctx.getStart().getLine() + ": Differing return types: expected " + method.getType() + ", but got " + returnType);
+            }
         }
     }
+
 
     @Override
     public void exitMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
@@ -64,7 +93,7 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
             Symbol varSymbol = ((ClassSymbol) currentScope).resolveInSuper(varName);
 
             if(varSymbol != null && !Objects.equals(varSymbol.getType(), varType)) {
-                System.err.println("Type error: Differing variable types:" + varType + ", " + varSymbol.getType());
+                System.err.println("Type error at line " + ctx.getStart().getLine() + ": Differing variable types:" + varType + ", " + varSymbol.getType());
             }
         }
     }
@@ -81,7 +110,7 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
             Symbol classSymbol = globals.resolve(className);
 
             if(classSymbol == null) {
-                System.err.println( "Res Error: no such class: " + className + " for variable: " + varName);
+                System.err.println( "Res Error at line " + ctx.getStart().getLine() + ": no such class: " + className + " for variable: " + varName);
             }
         }
     }
@@ -92,10 +121,10 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
 
         Symbol var = currentScope.resolve(varName);
         if ( var==null ) {
-            System.err.println( "Res Error: no such variable: " + varName);
+            System.err.println( "Res Error at line " + ctx.getStart().getLine() + ": no such variable: " + varName);
         }
         if (var instanceof ClassSymbol || var instanceof MethodSymbol) {
-            System.err.println("Res Error: " + varName + " is not a variable");
+            System.err.println("Res Error at line " + ctx.getStart().getLine() + ": " + varName + " is not a variable");
         }
     }
 
@@ -132,11 +161,11 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
             Symbol methodSymbol = classSymbol.resolve(methodName);
 
             if (methodSymbol == null)
-                System.err.println("Res Error: no such method: " + methodName);
+                System.err.println("Res Error at line " + ctx.getStart().getLine() + ": no such method: " + methodName);
             if (methodSymbol instanceof VariableSymbol || methodSymbol instanceof ClassSymbol)
-                System.err.println("Res Error: " + methodName + " is not a method");
+                System.err.println("Res Error at line " + ctx.getStart().getLine() + ": " + methodName + " is not a method");
             if(methodSymbol instanceof MethodSymbol && ((MethodSymbol) methodSymbol).arguments.size() != numArgs) {
-                System.err.println("Res Error: Number of arguments mismatch for: " + methodName);
+                System.err.println("Res Error at line " + ctx.getStart().getLine() + ": Number of arguments mismatch for: " + methodName);
             }
         }
     }
@@ -147,10 +176,10 @@ public class SymbolResolutionListener extends MiniJavaBaseListener {
 
         Symbol classSymbol = globals.resolve(className);
         if (classSymbol == null) {
-            System.err.println("Res Error: no such class: " + className);
+            System.err.println("Res Error at line " + ctx.getStart().getLine() + ": no such class: " + className);
         }
         if (classSymbol instanceof VariableSymbol || classSymbol instanceof MethodSymbol) {
-            System.err.println("Res Error: " + className + " is not a class");
+            System.err.println("Res Error at line " + ctx.getStart().getLine() + ": " + className + " is not a class");
         }
     }
 }
