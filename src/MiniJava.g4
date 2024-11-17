@@ -21,23 +21,23 @@ statement          : '{' statement* '}' #nestedStatement
                    | 'if' '(' expression ')' statement 'else' statement #ifElseStatement
                    | 'while' '(' expression ')' statement #whileStatement
                    | 'System.out.println' '(' expression ')' ';' #printStatement
-                   | identifier '=' expression ';' #varAssignStatement //TODO: Check that exp = id type
-                   | identifier '[' expression ']' '=' expression ';' #arrayAssignStatement; //TODO: i must be int, id type and exp must be same type
+                   | identifier '=' expression ';' #varAssignStatement
+                   | identifier '[' expression ']' '=' expression ';' #arrayAssignStatement;
 
-expression         : expression ('&&' | '<' | '+' | '-' | '*') expression #arithExpression //TODO: Check types
-                   | expression '[' expression ']' #arrayAccessExpression //TODO: check that lit is array and i is int
-                   | expression '.' 'length' #arrayLengthExpression //TODO: check that left is array
-                   | expression '.' identifier '(' (expression (',' expression)*)? ')' #methodCallExpression //done
+expression         : expression ('&&' | '<' | '+' | '-' | '*') expression #arithExpression
+                   | expression '[' expression ']' #arrayAccessExpression
+                   | expression '.' 'length' #arrayLengthExpression
+                   | expression '.' identifier '(' (expression (',' expression)*)? ')' #methodCallExpression
                    | INTEGER_LITERAL #intLiteralExpression
                    | FLOAT_LITERAL #floatLiteralExpression
                    | 'true' #trueLiteralExpression
                    | 'false' #falseLiteralExpression
                    | identifier #identifierExpression
                    | 'this' #thisClassExpression
-                   | 'new' 'int' '[' expression ']' #newIntegerArrayExpression //TODO: check that i is int
-                   | 'new' 'float' '[' expression ']' #newFloatArrayExpression //TODO: check that i is int
-                   | 'new' identifier '(' ')' #newClassExpression //done
-                   | '!' expression #notExpression //TODO: make sure ex is bool
+                   | 'new' 'int' '[' expression ']' #newIntegerArrayExpression
+                   | 'new' 'float' '[' expression ']' #newFloatArrayExpression
+                   | 'new' identifier '(' ')' #newClassExpression
+                   | '!' expression #notExpression
                    | '(' expression ')' #lpRpExpression;
 
 identifier         : IDENTIFIER ;
