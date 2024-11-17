@@ -10,7 +10,7 @@ public class Main {
         //Run Bad Programs
 //        Testing testBadFiles = new Testing(false, "test_programs/error_prone");
 //        testBadFiles.runTests();
-        Testing testTypeChecking = new Testing(false, "test_programs/type_checks");
+        Testing testTypeChecking = new Testing(false, "test_programs/error_free");
         testTypeChecking.runTests();
     }
 }
