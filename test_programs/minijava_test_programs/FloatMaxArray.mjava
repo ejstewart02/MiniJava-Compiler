@@ -34,11 +34,13 @@ class ArrayMax {
 		float best;
 		int i;
 		int nt;
+		float aux;
 
 		best = array[0];
 		i = 1;
 		while (i < size) {
-			if (best < array[i])
+			aux = array[i];
+			if (best < aux)
 				best = array[i];
 			else
 				nt = 0;

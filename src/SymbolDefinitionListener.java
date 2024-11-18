@@ -23,7 +23,7 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
 
     @Override
     public void exitGoal(MiniJavaParser.GoalContext ctx) {
-        System.out.println(globals);
+        //System.out.println(globals);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
 
     @Override
     public void exitClassDeclaration(MiniJavaParser.ClassDeclarationContext ctx) {
-        System.out.println(currentScope);
+        //System.out.println(currentScope);
 
         currentScope = currentScope.getEnclosingScope();
 
@@ -107,9 +107,9 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
 
     @Override
     public void exitMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
-        System.out.println(currentScope);
+        //System.out.println(currentScope);
         currentScope = currentScope.getEnclosingScope();
-        System.out.println(currentScope);
+        //System.out.println(currentScope);
         currentScope = currentScope.getEnclosingScope();
     }
 }

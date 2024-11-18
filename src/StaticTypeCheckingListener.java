@@ -3,6 +3,7 @@ import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import symbols.*;
 
+import java.util.List;
 import java.util.Set;
 
 public class StaticTypeCheckingListener extends MiniJavaBaseListener {
@@ -57,30 +58,63 @@ public class StaticTypeCheckingListener extends MiniJavaBaseListener {
     public void exitArithExpression(MiniJavaParser.ArithExpressionContext ctx) {
         String leftType = expressionTypes.get(ctx.expression(0));
         String rightType = expressionTypes.get(ctx.expression(1));
+        String operator = ctx.getChild(1).getText(); // The operator ('&&', '<', '+', '-', '*')
 
-        // If one of the operands is a float, promote the other operand to float
-        if(leftType != null && rightType != null) {
-            if ("float".equals(leftType) || "float".equals(rightType)) {
-                // Promote to float and handle mixed int-float scenarios
-                if ("int".equals(leftType)) {
-                    leftType = "float";
-                    expressionTypes.put(ctx.expression(0), "float"); // Update to indicate promotion
-                }
-                if ("int".equals(rightType)) {
-                    rightType = "float";
-                    expressionTypes.put(ctx.expression(1), "float"); // Update to indicate promotion
-                }
+        if (leftType != null && rightType != null) {
+            switch (operator) {
+                case "+":
+                case "-":
+                case "*":
+                    // Arithmetic operations
+                    if ("float".equals(leftType) || "float".equals(rightType)) {
+                        // Promote to float for mixed int-float scenarios
+                        if ("int".equals(leftType)) {
+                            leftType = "float";
+                            expressionTypes.put(ctx.expression(0), "float"); // Update for promotion
+                        }
+                        if ("int".equals(rightType)) {
+                            rightType = "float";
+                            expressionTypes.put(ctx.expression(1), "float"); // Update for promotion
+                        }
+                        expressionTypes.put(ctx, "float"); // Result is float
+                    } else if ("int".equals(leftType) && "int".equals(rightType)) {
+                        expressionTypes.put(ctx, "int"); // Result is int
+                    } else {
+                        // Error: incompatible types
+                        System.err.println("Type Error at line " + ctx.getStart().getLine() + ": Incompatible types for arithmetic operation: " + leftType + " and " + rightType);
+                    }
+                    break;
 
-                expressionTypes.put(ctx, "float"); // Result of the expression is float
-            } else if ("int".equals(leftType) && "int".equals(rightType)) {
-                // Both operands are int, so result is int
-                expressionTypes.put(ctx, "int");
-            } else {
-                // Error: incompatible types
-                System.err.println("Type Error at line " + ctx.getStart().getLine() + ": Incompatible types for arithmetic operation: " + leftType + " and " + rightType);
+                case "<":
+                    // Comparison operation
+                    if (("int".equals(leftType) || "float".equals(leftType)) && ("int".equals(rightType) || "float".equals(rightType))) {
+                        // Allow int and float for comparison
+                        expressionTypes.put(ctx, "boolean"); // Result of a comparison is boolean
+                    } else {
+                        // Error: incompatible types
+                        System.err.println("Type Error at line " + ctx.getStart().getLine() + ": Incompatible types for comparison: " + leftType + " and " + rightType);
+                    }
+                    break;
+
+                case "&&":
+                    // Logical AND operation
+                    if ("boolean".equals(leftType) && "boolean".equals(rightType)) {
+                        expressionTypes.put(ctx, "boolean"); // Result of logical AND is boolean
+                    } else {
+                        // Error: incompatible types
+                        System.err.println("Type Error at line " + ctx.getStart().getLine() + ": Logical AND requires boolean operands, got " + leftType + " and " + rightType);
+                    }
+                    break;
+
+                default:
+                    // Unsupported operator
+                    System.err.println("Type Error at line " + ctx.getStart().getLine() + ": Unsupported operator: " + operator);
+                    break;
             }
+        } else {
+            // Error: missing types (this shouldn't happen if type checking is properly enforced elsewhere)
+            System.err.println("Type Error at line " + ctx.getStart().getLine() + ": Missing types for operands.");
         }
-
     }
 
     @Override
@@ -139,8 +173,11 @@ public class StaticTypeCheckingListener extends MiniJavaBaseListener {
         Symbol varSymbol = currentScope.resolve(varName);
 
         if (varSymbol == null) {
-//            System.err.println("Resolution Error at line " + ctx.getStart().getLine() + ": Variable " + varName + " not found.");
-        } else {
+            System.err.println("Resolution Error at line " + ctx.getStart().getLine() + ": Variable " + varName + " not found.");
+        } else if(varSymbol instanceof VariableSymbol) {
+            if (!((VariableSymbol) varSymbol).isInitialized()) {
+                System.err.println("Error at line " + ctx.getStart().getLine() + ": Variable " + varName + " might be used before initialization.");
+            }
             expressionTypes.put(ctx, varSymbol.getType());
         }
     }
@@ -262,56 +299,85 @@ public class StaticTypeCheckingListener extends MiniJavaBaseListener {
     public void exitPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
         String exprType = expressionTypes.get(ctx.expression());
         if(exprType != null) {
-            if (!(exprType.equals("int") || exprType.equals("float") || exprType.equals("String"))) {
+            if (!(exprType.equals("int") || exprType.equals("float") || exprType.equals("String") || exprType.equals("boolean"))) {
                 System.err.println("Type Error at line " + ctx.getStart().getLine() + ": System.out.println cannot print type " + exprType + ".");
             }
         }
     }
 
     @Override
+    public void exitThisClassExpression(MiniJavaParser.ThisClassExpressionContext ctx) {
+        String className = currentScope.getEnclosingScope().getEnclosingScope().getScopeName();
+        expressionTypes.put(ctx, className);
+    }
+
+    @Override
     public void exitMethodCallExpression(MiniJavaParser.MethodCallExpressionContext ctx) {
-        String methodName = ctx.identifier().getText();
-        String className;
-
-        MiniJavaParser.ExpressionContext classExp = ctx.expression(0);
-
+        String methodName = ctx.identifier().getText(); // Method being called
+        MiniJavaParser.ExpressionContext callerExpression = ctx.expression(0); // Caller expression
         ClassSymbol classSymbol = null;
 
-        // Resolve the method symbol using the class and method name
-        if (classExp instanceof MiniJavaParser.NewClassExpressionContext newClassCtx) {
-            className = newClassCtx.identifier().getText();
+        // Resolve the class symbol of the caller
+        if (callerExpression instanceof MiniJavaParser.NewClassExpressionContext newClassCtx) {
+            // Handle "new ClassName()"
+            String className = newClassCtx.identifier().getText();
             classSymbol = (ClassSymbol) globals.resolve(className);
-        } else if(classExp instanceof MiniJavaParser.ThisClassExpressionContext) {
+        } else if (callerExpression instanceof MiniJavaParser.ThisClassExpressionContext) {
+            // Handle "this"
             classSymbol = (ClassSymbol) currentScope.getEnclosingScope().getEnclosingScope();
         } else {
-            className = classExp.getText();
-            Symbol classVar = currentScope.resolve(className);
-
-            if(classVar != null)
-                classSymbol = (ClassSymbol) globals.resolve(classVar.getType());
-        }
-
-        if (classSymbol != null) {
-            // Find the method in the class symbol
-            Symbol methodSymbol = classSymbol.resolve(methodName);
-            if (methodSymbol instanceof MethodSymbol method) {
-                // Compare argument types
-                Set<String> keys = method.arguments.keySet();
-                int i = 1;
-                for (String key : keys) {
-                    String paramType = method.arguments.get(key).getType();
-                    String argType = expressionTypes.get(ctx.expression(i));  // Get the actual argument type
-
-                    if (!paramType.equals(argType)) {
-                        System.err.println("Error at line " + ctx.getStart().getLine() + ": Argument " + i + " in method call " + methodName + " expects " + paramType + ", but got " + argType);
-                    }
-                    i++;
-                }
-                String returnType = methodSymbol.getType();
-                expressionTypes.put(ctx, returnType);
+            // Handle variables or previous method calls
+            String callerType = expressionTypes.get(callerExpression);
+            if (callerType != null) {
+                classSymbol = (ClassSymbol) globals.resolve(callerType);
             }
         }
 
+        if (classSymbol != null) {
+            // Resolve the method within the class
+            Symbol methodSymbol = classSymbol.resolve(methodName);
+            if (methodSymbol instanceof MethodSymbol method) {
+                // Validate argument types
+                List<MiniJavaParser.ExpressionContext> arguments = ctx.expression().subList(1, ctx.expression().size());
+                if (method.arguments.size() != arguments.size()) {
+                    System.err.println("Error at line " + ctx.getStart().getLine() + ": Method " + methodName + " expects " + method.arguments.size() + " arguments, but got " + arguments.size());
+                } else {
+                    int i = 0;
+                    for (String key : method.arguments.keySet()) {
+                        String expectedType = method.arguments.get(key).getType();
+                        String actualType = expressionTypes.get(arguments.get(i));
+                        if (!isSubtype(actualType, expectedType)) {
+                            System.err.println("Error at line " + ctx.getStart().getLine() + ": Argument " + (i + 1) + " in method call " + methodName + " expects " + expectedType + ", but got " + actualType);
+                        }
+                        i++;
+                    }
+                }
 
+                // Store the return type of the method in the expression types
+                String returnType = methodSymbol.getType();
+                expressionTypes.put(ctx, returnType);
+            } else {
+                System.err.println("Error at line " + ctx.getStart().getLine() + ": No such method " + methodName + " in class " + classSymbol.getName());
+            }
+        } else {
+            System.err.println("Error at line " + ctx.getStart().getLine() + ": Cannot resolve type of caller for method " + methodName);
+        }
+    }
+
+    private boolean isSubtype(String subType, String superType) {
+        if (subType == null || superType == null) {
+            return false;
+        }
+        if (subType.equals(superType)) {
+            return true;
+        }
+        ClassSymbol subClass = (ClassSymbol) globals.resolve(subType);
+        while (subClass != null) {
+            if (subClass.getName().equals(superType)) {
+                return true;
+            }
+            subClass = (ClassSymbol) subClass.getParent();
+        }
+        return false;
     }
 }
