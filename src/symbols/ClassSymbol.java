@@ -1,5 +1,7 @@
 package symbols;
 
+import org.objectweb.asm.Type;
+
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -80,5 +82,10 @@ public class ClassSymbol extends Symbol implements Scope {
 
     public String toString() {
         return "class: " + super.toString() + ":" + arguments.values();
+    }
+
+    //BYTECODE STUFF//
+    public Type getByteCodeType() {
+        return Type.getType("L" + this.type + ";");
     }
 }

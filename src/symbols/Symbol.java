@@ -27,4 +27,15 @@ public class Symbol { // A generic programming language symbol
             return '<' + name + ":" + type + '>';
         return '<' + name + '>';
     }
+
+    //BYTECODE STUFF//
+    private int numericalId;
+
+    public void setNumericalId(int id) {
+        this.numericalId = id;
+    }
+
+    public int getNumericalId() {
+        return numericalId;
+    }
 }
