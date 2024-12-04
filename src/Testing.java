@@ -31,6 +31,11 @@ public class Testing {
     public void runTests() throws IOException {
 //        try {
             for (String fileName : fileNames) {
+                System.err.flush();
+                System.out.flush();
+                //System.setErr(System.out);
+                System.setOut(System.err);
+
                 CharStream charStream = CharStreams.fromFileName(fileLoc + "/" + fileName);
                 MiniJavaLexer mjLexer = new MiniJavaLexer(charStream);
                 CommonTokenStream commonTokenStream = new CommonTokenStream(mjLexer);
@@ -60,7 +65,7 @@ public class Testing {
                 walker.walk(typeChecker, tree);
 
 
-                System.out.println("Ran a parse on: " + fileName);
+                System.out.println("\u001B[37m" + "--------------------- Ran a parse on: " + fileName + " ---------------------" + "\033[0m");
 
                 if (displayTrees) {
                     TreeViewer viewer = new TreeViewer(Arrays.asList(

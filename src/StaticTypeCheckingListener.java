@@ -175,7 +175,7 @@ public class StaticTypeCheckingListener extends MiniJavaBaseListener {
         if (varSymbol == null) {
             System.err.println("Resolution Error at line " + ctx.getStart().getLine() + ": Variable " + varName + " not found.");
         } else if(varSymbol instanceof VariableSymbol) {
-            if (!((VariableSymbol) varSymbol).isInitialized()) {
+            if (!((VariableSymbol) varSymbol).isInitialized() && currentScope.getEnclosingScope().resolve(varName) == null) {
                 System.err.println("Error at line " + ctx.getStart().getLine() + ": Variable " + varName + " might be used before initialization.");
             }
             expressionTypes.put(ctx, varSymbol.getType());
