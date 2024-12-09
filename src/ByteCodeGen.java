@@ -70,7 +70,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         String mainClassName = ctx.identifier(0).getText();
 
         try{
-            fileOutput = new FileOutputStream(mainClassName + ".class");
+            fileOutput = new FileOutputStream("test_output/" + mainClassName + ".class");
             fileOutput.write(classWriter.toByteArray());
             fileOutput.close();
         }catch(FileNotFoundException fnfe){
@@ -90,7 +90,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
         String className = classSymbol.getScopeName();
         String superClassName;
-        if(classSymbol.getParent() != null) {
+        if(classSymbol.getParent() != null && !(classSymbol.getParent() instanceof GlobalScope)) {
             superClassName = classSymbol.getParent().getScopeName();
         } else {
             superClassName = "java/lang/Object";
@@ -113,7 +113,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         String className = ctx.identifier(0).getText();
 
         try{
-            fileOutput = new FileOutputStream(className + ".class");
+            fileOutput = new FileOutputStream("test_output/" + className + ".class");
             fileOutput.write(classWriter.toByteArray());
             fileOutput.close();
         }catch(FileNotFoundException fnfe){
@@ -144,7 +144,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
     public void enterMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
         currentScope = scopes.get(ctx);
 
-        MethodSymbol methodSymbol = (MethodSymbol) currentScope;
+        MethodSymbol methodSymbol = (MethodSymbol) currentScope.getEnclosingScope();
 
         currentId = 0;
 
@@ -216,7 +216,11 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
     @Override
     public void exitPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
-        methodGenerator.invokeVirtual(Type.getType(PrintStream.class), org.objectweb.asm.commons.Method.getMethod("void println (int)"));
+        String exprType = expressionTypes.get(ctx.expression());
+        if(exprType.equals("int"))
+            methodGenerator.invokeVirtual(Type.getType(PrintStream.class), org.objectweb.asm.commons.Method.getMethod("void println (int)"));
+        else if(exprType.equals("float"))
+            methodGenerator.invokeVirtual(Type.getType(PrintStream.class), org.objectweb.asm.commons.Method.getMethod("void println (float)"));
     }
 
     @Override
@@ -224,7 +228,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         String varName = ctx.identifier().getText();
 
         VariableSymbol var = (VariableSymbol) currentScope.resolve(varName);
-        if(currentScope instanceof ClassSymbol)
+        if(var.getScope() instanceof ClassSymbol)
             methodGenerator.loadThis();
     }
 
@@ -236,10 +240,10 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
         Type type = var.getByteCodeType();
 
-        if(currentScope instanceof ClassSymbol){
-            Type encScopeByteCode = ((ClassSymbol)currentScope.getEnclosingScope()).getByteCodeType();
+        if(var.getScope() instanceof ClassSymbol){
+            Type encScopeByteCode =  ((ClassSymbol) var.getScope()).getByteCodeType();   //((ClassSymbol)currentScope.getEnclosingScope()).getByteCodeType();
             methodGenerator.putField(encScopeByteCode, var.getName(), type);
-        }else if(currentScope instanceof MethodSymbol){
+        }else if(var.getScope() instanceof MethodSymbol){
             methodGenerator.storeArg(var.getNumericalId());
         }else{
             methodGenerator.storeLocal(var.getNumericalId(), type);
@@ -289,11 +293,11 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
         Type type = var.getByteCodeType();
 
-        if(currentScope instanceof ClassSymbol){
-            Type encScopeByteCode = ((ClassSymbol)currentScope.getEnclosingScope()).getByteCodeType();
+        if(var.getScope() instanceof ClassSymbol){
+            Type encScopeByteCode = ((ClassSymbol) var.getScope()).getByteCodeType(); //((ClassSymbol)currentScope.getEnclosingScope()).getByteCodeType();
             methodGenerator.loadThis();
             methodGenerator.getField(encScopeByteCode, var.getName(), type);
-        }else if(currentScope instanceof MethodSymbol){
+        }else if(var.getScope() instanceof MethodSymbol){
             methodGenerator.loadArg(var.getNumericalId());
         }else{
             methodGenerator.loadLocal(var.getNumericalId(), type);
@@ -317,7 +321,8 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
     @Override
     public void exitMethodCallExpression(MiniJavaParser.MethodCallExpressionContext ctx) {
-        String classType = expressionTypes.get(ctx);
+        //String classType = expressionTypes.get(ctx);
+        String classType = expressionTypes.get(ctx.expression(0));
         ClassSymbol classSymbol = (ClassSymbol) globals.resolve(classType);
         String methodName = ctx.identifier().getText();
         Method methodAsm = ((MethodSymbol) classSymbol.resolve(methodName)).getByteCodeMethod();
@@ -340,6 +345,8 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
     @Override
     public void enterFloatLiteralExpression(MiniJavaParser.FloatLiteralExpressionContext ctx) {
+        float ex = Float.parseFloat(ctx.getText());
+
         methodGenerator.push(Float.parseFloat(ctx.getText()));
     }
 
