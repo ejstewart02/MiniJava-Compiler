@@ -86,6 +86,6 @@ public class ClassSymbol extends Symbol implements Scope {
 
     //BYTECODE STUFF//
     public Type getByteCodeType() {
-        return Type.getType("L" + this.type + ";");
+        return Type.getType("L" + this.name + ";");
     }
 }

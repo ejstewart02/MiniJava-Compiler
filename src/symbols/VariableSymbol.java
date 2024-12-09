@@ -32,4 +32,12 @@ public class VariableSymbol extends Symbol {
             return Type.getType("L" + this.type + ";");
         }
     }
+
+    public void setScope(Scope scope) {
+        this.scope = scope;
+    }
+
+    public Scope getScope() {
+        return this.scope;
+    }
 }

@@ -49,22 +49,27 @@ public class MethodSymbol extends Symbol implements Scope {
     }
 
     //---------CODE GEN---------//
-    public String buildName(){
-        StringBuilder fullName = new StringBuilder(this.type + " " + this.name);
-        ///fullName = fullName.substring(0, fullName.length()-1);
+    public String buildName() {
+        StringBuilder fullName = new StringBuilder();
 
-        if(!arguments.isEmpty()) {
-            for(Symbol parameter : arguments.values()){
-                fullName.append(parameter.name).append(", ");
+        fullName.append(type).append(" ");
+        fullName.append(name).append("(");
+
+        if (!arguments.isEmpty()) {
+            boolean first = true;
+            for (Symbol parameter : arguments.values()) {
+                if (!first)
+                    fullName.append(", ");
+
+                fullName.append(parameter.type);
+                first = false;
             }
-
-            fullName = new StringBuilder(fullName.substring(0, fullName.length() - 2));
         }
+
         fullName.append(")");
 
         return fullName.toString();
     }
-
 
     public Method getByteCodeMethod(){
         return Method.getMethod(this.buildName(), true);

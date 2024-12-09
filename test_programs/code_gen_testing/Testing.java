@@ -1,13 +1,11 @@
 class Testing {
 	public static void main(String[] a) {
-		System.out.println(new Human().GetAge());
+		System.out.println(new Human().GetAge(22));
     }
 }
 
 class Human {
-	int age;
-    public int GetAge(){
-		age = 22;
+    public int GetAge(int age){
 
 		return age;
     }

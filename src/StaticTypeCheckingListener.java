@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Set;
 
 public class StaticTypeCheckingListener extends MiniJavaBaseListener {
-    private final ParseTreeProperty<Scope> scopes;
-    private final GlobalScope globals;
-    private Scope currentScope;
-    private final ParseTreeProperty<String> expressionTypes = new ParseTreeProperty<>();
+    ParseTreeProperty<Scope> scopes;
+    GlobalScope globals;
+    Scope currentScope;
+    ParseTreeProperty<String> expressionTypes = new ParseTreeProperty<>();
 
     public StaticTypeCheckingListener(ParseTreeProperty<Scope> scopes, GlobalScope globals) {
         this.scopes = scopes;

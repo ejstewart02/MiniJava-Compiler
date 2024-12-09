@@ -72,6 +72,7 @@ public class SymbolDefinitionListener extends MiniJavaBaseListener {
             System.err.println( "Def Error at line " + ctx.getStart().getLine() + ": Variable already declared: " + varName);
         } else {
             VariableSymbol var = new VariableSymbol(varName, varType);
+            var.setScope(currentScope);
             currentScope.define(var);
         }
 

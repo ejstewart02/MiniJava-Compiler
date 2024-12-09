@@ -64,6 +64,10 @@ public class Testing {
                 StaticTypeCheckingListener typeChecker = new StaticTypeCheckingListener(resolutionListener.scopes, resolutionListener.globals);
                 walker.walk(typeChecker, tree);
 
+                ByteCodeGen codeGen = new ByteCodeGen(typeChecker.scopes, typeChecker.expressionTypes, typeChecker.globals);
+                walker.walk(codeGen, tree);
+
+
 
                 System.out.println("\u001B[37m" + "--------------------- Ran a parse on: " + fileName + " ---------------------" + "\033[0m");
 
