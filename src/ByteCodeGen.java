@@ -346,7 +346,6 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
     @Override
     public void enterFloatLiteralExpression(MiniJavaParser.FloatLiteralExpressionContext ctx) {
         float ex = Float.parseFloat(ctx.getText());
-
         methodGenerator.push(Float.parseFloat(ctx.getText()));
     }
 
