@@ -1,5 +1,4 @@
-// Generated from E:/College/SEMESTER 8/COMPILER/CSC-444-PROJECT/src/MiniJava.g4 by ANTLR 4.13.1
-package antlr.gen.output;
+// Generated from E:/College/SEMESTER 8/COMPILER/CSC-444-PROJECT/src/MiniJava.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -139,6 +138,36 @@ public interface MiniJavaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitArrayAssignStatement(MiniJavaParser.ArrayAssignStatementContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link MiniJavaParser#ifBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfBlock(MiniJavaParser.IfBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MiniJavaParser#ifBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfBlock(MiniJavaParser.IfBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link MiniJavaParser#elseBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterElseBlock(MiniJavaParser.ElseBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MiniJavaParser#elseBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitElseBlock(MiniJavaParser.ElseBlockContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link MiniJavaParser#whileBlock}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhileBlock(MiniJavaParser.WhileBlockContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link MiniJavaParser#whileBlock}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhileBlock(MiniJavaParser.WhileBlockContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code identifierExpression}
 	 * labeled alternative in {@link MiniJavaParser#expression}.

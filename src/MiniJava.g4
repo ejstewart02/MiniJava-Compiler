@@ -18,11 +18,17 @@ type               : 'int' '[' ']'
                    | identifier ;
 
 statement          : '{' statement* '}' #nestedStatement
-                   | 'if' '(' expression ')' statement 'else' statement #ifElseStatement
-                   | 'while' '(' expression ')' statement #whileStatement
+                   | 'if' '(' expression ')' ifBlock 'else' elseBlock #ifElseStatement
+                   | 'while' '(' expression ')' whileBlock #whileStatement
                    | 'System.out.println' '(' expression ')' ';' #printStatement
                    | identifier '=' expression ';' #varAssignStatement
                    | identifier '[' expression ']' '=' expression ';' #arrayAssignStatement;
+
+ifBlock            : statement;
+
+elseBlock          : statement;
+
+whileBlock         : statement;
 
 expression         : expression ('&&' | '<' | '+' | '-' | '*') expression #arithExpression
                    | expression '[' expression ']' #arrayAccessExpression

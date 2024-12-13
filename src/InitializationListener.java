@@ -1,9 +1,4 @@
-import antlr.gen.output.MiniJavaBaseListener;
-import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import symbols.*;
-
-import java.util.Objects;
 
 public class InitializationListener extends MiniJavaBaseListener {
     ParseTreeProperty<Scope> scopes;

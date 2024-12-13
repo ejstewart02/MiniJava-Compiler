@@ -1,5 +1,3 @@
-package symbols;
-
 public interface Scope {
     public String getScopeName();
 

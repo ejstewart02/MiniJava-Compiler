@@ -1,5 +1,3 @@
-import antlr.gen.output.MiniJavaLexer;
-import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -64,7 +62,7 @@ public class Testing {
                 StaticTypeCheckingListener typeChecker = new StaticTypeCheckingListener(resolutionListener.scopes, resolutionListener.globals);
                 walker.walk(typeChecker, tree);
 
-                ByteCodeGen codeGen = new ByteCodeGen(typeChecker.scopes, typeChecker.expressionTypes, typeChecker.globals);
+                ByteCodeGen codeGen = new ByteCodeGen(typeChecker.scopes, typeChecker.expressionTypes, typeChecker.globals, new String());
                 walker.walk(codeGen, tree);
 
 

@@ -1,19 +1,14 @@
-import antlr.gen.output.MiniJavaBaseListener;
-import antlr.gen.output.MiniJavaParser;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
-import symbols.*;
 
 import java.io.*;
 import java.util.Objects;
 import java.util.Stack;
 
 public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
+    private String classFileOutput;
     private ClassWriter classWriter;
     private GeneratorAdapter methodGenerator;
     private FileOutputStream fileOutput;
@@ -24,10 +19,11 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
     private int currentId;
     private Stack<Label> labelStack = new Stack<Label>();
 
-    public ByteCodeGen(ParseTreeProperty<Scope> scopes, ParseTreeProperty<String> expressionTypes, GlobalScope globals) {
+    public ByteCodeGen(ParseTreeProperty<Scope> scopes, ParseTreeProperty<String> expressionTypes, GlobalScope globals, String classFileOutput) {
         this.scopes = scopes;
         this.expressionTypes = expressionTypes;
         this.globals = globals;
+        this.classFileOutput = classFileOutput;
     }
 
     @Override
@@ -56,7 +52,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         methodGenerator.endMethod();
 
         methodGenerator = new GeneratorAdapter(ACC_PUBLIC + ACC_STATIC,
-                org.objectweb.asm.commons.Method.getMethod("void main (String[])"),
+                Method.getMethod("void main (String[])"),
                 null, null, classWriter);
 
     }
@@ -70,7 +66,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         String mainClassName = ctx.identifier(0).getText();
 
         try{
-            fileOutput = new FileOutputStream("test_output/" + mainClassName + ".class");
+            fileOutput = new FileOutputStream(classFileOutput + "/" + mainClassName + ".class");
             fileOutput.write(classWriter.toByteArray());
             fileOutput.close();
         }catch(FileNotFoundException fnfe){
@@ -113,7 +109,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         String className = ctx.identifier(0).getText();
 
         try{
-            fileOutput = new FileOutputStream("test_output/" + className + ".class");
+            fileOutput = new FileOutputStream(classFileOutput + "/" + className + ".class");
             fileOutput.write(classWriter.toByteArray());
             fileOutput.close();
         }catch(FileNotFoundException fnfe){
@@ -166,7 +162,6 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
     public void exitMethodDeclaration(MiniJavaParser.MethodDeclarationContext ctx) {
         methodGenerator.returnValue();
         methodGenerator.endMethod();
-
         currentScope = currentScope.getEnclosingScope();
     }
 
@@ -180,34 +175,61 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
         super.exitNestedStatement(ctx);
     }
 
+    //TODO:
     @Override
     public void enterIfElseStatement(MiniJavaParser.IfElseStatementContext ctx) {
-//        Label enterElse = methodGenerator.newLabel();
-//        Label exitElse  = methodGenerator.newLabel();
-//        labelStack.push(exitElse);
-//        labelStack.push(enterElse);
-//        labelStack.push(exitElse);
-//        labelStack.push(enterElse);
-//
-//        methodGenerator.ifZCmp(GeneratorAdapter.EQ, labelStack.pop());
-//        methodGenerator.mark(labelStack.pop());
+        Label enterElse = methodGenerator.newLabel();
+        Label exitElse  = methodGenerator.newLabel();
+        //methodGenerator.ifZCmp(GeneratorAdapter.EQ, enterElse);
+        labelStack.push(exitElse);
+        labelStack.push(enterElse);
+        labelStack.push(exitElse);
+        labelStack.push(enterElse);
+
     }
 
     @Override
-    public void exitIfElseStatement(MiniJavaParser.IfElseStatementContext ctx) {
-//        methodGenerator.goTo(labelStack.pop());
-//        methodGenerator.mark(labelStack.pop());
+    public void enterIfBlock(MiniJavaParser.IfBlockContext ctx) {
+        methodGenerator.ifZCmp(GeneratorAdapter.EQ, labelStack.pop());
+    }
+
+    @Override
+    public void exitIfBlock(MiniJavaParser.IfBlockContext ctx) {
+        methodGenerator.goTo(labelStack.pop());
+    }
+
+    @Override
+    public void enterElseBlock(MiniJavaParser.ElseBlockContext ctx) {
+        methodGenerator.mark(labelStack.pop());
+    }
+
+    @Override
+    public void exitElseBlock(MiniJavaParser.ElseBlockContext ctx) {
+        methodGenerator.mark(labelStack.pop());
     }
 
     @Override
     public void enterWhileStatement(MiniJavaParser.WhileStatementContext ctx) {
-        super.enterWhileStatement(ctx);
+        Label enterWhile = methodGenerator.mark();
+        Label exitWhile = methodGenerator.newLabel();
+        labelStack.push(exitWhile);
+        labelStack.push(enterWhile);
+        labelStack.push(exitWhile);
     }
+
 
     @Override
     public void exitWhileStatement(MiniJavaParser.WhileStatementContext ctx) {
-        super.exitWhileStatement(ctx);
+        methodGenerator.goTo(labelStack.pop());
+        methodGenerator.mark(labelStack.pop());
     }
+
+    @Override
+    public void enterWhileBlock(MiniJavaParser.WhileBlockContext ctx) {
+        methodGenerator.ifZCmp(GeneratorAdapter.EQ, labelStack.pop());
+    }
+
+    //TODO:
 
     @Override
     public void enterPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
@@ -216,11 +238,10 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
     @Override
     public void exitPrintStatement(MiniJavaParser.PrintStatementContext ctx) {
-        String exprType = expressionTypes.get(ctx.expression());
-        if(exprType.equals("int"))
-            methodGenerator.invokeVirtual(Type.getType(PrintStream.class), org.objectweb.asm.commons.Method.getMethod("void println (int)"));
-        else if(exprType.equals("float"))
-            methodGenerator.invokeVirtual(Type.getType(PrintStream.class), org.objectweb.asm.commons.Method.getMethod("void println (float)"));
+        if(expressionTypes.get(ctx.expression()).equals("float")) {
+            methodGenerator.invokeVirtual(Type.getType(PrintStream.class), Method.getMethod("void println (float)"));
+        } else
+            methodGenerator.invokeVirtual(Type.getType(PrintStream.class), Method.getMethod("void println (int)"));
     }
 
     @Override
@@ -258,11 +279,11 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
         Type type = var.getByteCodeType();
 
-        if(currentScope instanceof ClassSymbol){
-            Type encScopeByteCode = ((ClassSymbol)currentScope.getEnclosingScope()).getByteCodeType();
+        if(var.getScope() instanceof ClassSymbol){
+            Type encScopeByteCode = ((ClassSymbol) var.getScope()).getByteCodeType();
             methodGenerator.loadThis();
             methodGenerator.getField(encScopeByteCode, var.getName(), type);
-        }else if(currentScope instanceof MethodSymbol){
+        }else if(var.getScope() instanceof MethodSymbol){
             methodGenerator.loadArg(var.getNumericalId());
         }else{
             methodGenerator.loadLocal(var.getNumericalId(), type);
@@ -351,7 +372,7 @@ public class ByteCodeGen extends MiniJavaBaseListener implements Opcodes {
 
     @Override
     public void exitArrayAccessExpression(MiniJavaParser.ArrayAccessExpressionContext ctx) {
-        String type = expressionTypes.get(ctx);
+        String type = expressionTypes.get(ctx.expression(0));
 
         if("int[]".equals(type))
             methodGenerator.arrayLoad(Type.INT_TYPE);

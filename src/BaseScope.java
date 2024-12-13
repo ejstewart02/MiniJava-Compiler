@@ -1,5 +1,3 @@
-package symbols;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 

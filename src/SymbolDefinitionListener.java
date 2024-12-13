@@ -1,10 +1,5 @@
-import antlr.gen.output.MiniJavaBaseListener;
-import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.antlr.v4.runtime.tree.TerminalNode;
-import symbols.*;
 
 public class SymbolDefinitionListener extends MiniJavaBaseListener {
     ParseTreeProperty<Scope> scopes = new ParseTreeProperty<Scope>();

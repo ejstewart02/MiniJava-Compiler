@@ -1,10 +1,6 @@
-import antlr.gen.output.MiniJavaBaseListener;
-import antlr.gen.output.MiniJavaParser;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import symbols.*;
 
 import java.util.List;
-import java.util.Set;
 
 public class StaticTypeCheckingListener extends MiniJavaBaseListener {
     ParseTreeProperty<Scope> scopes;

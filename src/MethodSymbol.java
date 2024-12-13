@@ -1,5 +1,3 @@
-package symbols;
-
 import org.objectweb.asm.commons.Method;
 
 import java.util.LinkedHashMap;

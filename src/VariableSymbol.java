@@ -1,5 +1,3 @@
-package symbols;
-
 import org.objectweb.asm.Type;
 
 public class VariableSymbol extends Symbol {

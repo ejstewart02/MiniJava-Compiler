@@ -1,5 +1,3 @@
-package symbols;
-
 import org.objectweb.asm.Type;
 
 import java.util.HashSet;

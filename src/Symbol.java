@@ -1,6 +1,3 @@
-package symbols;
-
-
 public class Symbol { // A generic programming language symbol
     String name;      // All symbols at least have a name
     String type;
