@@ -30,12 +30,12 @@ public class Test {
                 String minijavaOutput = runMiniJavaProgram(programName);
 
                 // Compare the outputs
-                if (javaOutput.equals(minijavaOutput)) {
+                if (javaOutput.equals(minijavaOutput) && !javaOutput.isEmpty()) {
                     System.out.println(BLUE + javaOutput);
                     System.out.println(CYAN + minijavaOutput);
                     System.out.println("\n" + GREEN + programName + ": Compiled Successfully");
                 } else {
-                    System.out.println("\n" + RED + programName + ": Compiled Unsuccessfully");
+                    System.out.println("\n" + RED + programName + ": Compiled Unsuccessfully\n");
                 }
             }
         }
@@ -56,7 +56,8 @@ public class Test {
     private static String runJavaProgram(String fileName) throws IOException, InterruptedException {
         String output;
 
-        ProcessBuilder runMiniJava = new ProcessBuilder("java", JAVA_OUTPUT + "/" + fileName);
+        ProcessBuilder runMiniJava = new ProcessBuilder("java", fileName);
+        runMiniJava.directory(new File(JAVA_OUTPUT));
         Process process = runMiniJava.start();
 
         process.waitFor();
@@ -74,7 +75,8 @@ public class Test {
     private static String runMiniJavaProgram(String fileName) throws IOException, InterruptedException {
         String output;
 
-        ProcessBuilder runMiniJava = new ProcessBuilder("java", MINIJAVA_OUTPUT + "/" + fileName);
+        ProcessBuilder runMiniJava = new ProcessBuilder("java", fileName);
+        runMiniJava.directory(new File(MINIJAVA_OUTPUT));
         Process process = runMiniJava.start();
 
         process.waitFor();
